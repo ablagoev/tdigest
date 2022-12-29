@@ -45,11 +45,26 @@ class TDigest
      */
     public static function createFromArray(array $digest)
     {
-        $fields = ['centroids', 'sum', 'count', 'max', 'min', 'size'];
+        $fields = ['centroids', 'sum', 'count', 'size'];
         foreach ($fields as &$field) {
             if (!isset($digest[$field])) {
                 throw new \RuntimeException('TDigest array should contain a ' . $field . '  key.');
             }
+        }
+
+        if (
+            count($digest['centroids']) > 0
+            && (!isset($digest['min']) || !isset($digest['max']))
+        ) {
+                throw new \RuntimeException('TDigest array contains centroids but is missing the min/max fields.');
+        }
+
+        if (!isset($digest['max'])) {
+            $digest['max'] = -INF;
+        }
+
+        if (!isset($digest['min'])) {
+            $digest['min'] = INF;
         }
 
         $centroids = [];
@@ -72,7 +87,7 @@ class TDigest
 
     public function toArray(): array
     {
-        return [
+        $data = [
             'centroids' => array_map(fn($c) => $c->toArray(), $this->centroids),
             'sum' => $this->sum,
             'count' => $this->count,
@@ -80,11 +95,22 @@ class TDigest
             'min' => $this->min,
             'size' => $this->maxSize,
         ];
+
+        // Handle inf variables properly
+        if ($data['max'] == -INF) {
+            unset($data['max']);
+        }
+        if ($data['min'] == INF) {
+            unset($data['min']);
+        }
+
+        return $data;
     }
 
     public function toJson(): string
     {
-        return json_encode($this->toArray());
+        $data = $this->toArray();
+        return json_encode($data);
     }
 
     public function addValues(array $values): void

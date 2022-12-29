@@ -326,6 +326,22 @@ class TDigestTest extends TestCase
     }
 
     /**
+     * @group toArray
+     */
+    public function test_toArray_handles_empty_digests_properly(): void
+    {
+        $digest = new TDigest(100);
+
+        $serialized = $digest->toArray();
+
+        $this->assertEquals(100, $serialized['size']);
+        $this->assertNotContains('max', $serialized);
+        $this->assertNotContains('min', $serialized);
+        $this->assertEquals(0, $serialized['count']);
+        $this->assertEquals(0, count($serialized['centroids']));
+    }
+
+    /**
      * @group createFromArray
      */
     public function test_createFromArray(): void
@@ -344,6 +360,23 @@ class TDigestTest extends TestCase
         $this->assertEquals(100, $digest->count());
         $this->assertEquals(5050, $digest->sum());
         $this->assertEquals(50.375, $digest->quantile(0.5));
+    }
+
+    /**
+     * @group createFromArray
+     */
+    public function test_createFromArray_handles_empty_digests_properly(): void
+    {
+        $digest = new TDigest(100);
+
+        $serialized = $digest->toArray();
+        $digest = TDigest::createFromArray($serialized);
+
+        $this->assertEquals(100, $digest->maxSize());
+        $this->assertEquals(0, $digest->count());
+        $this->assertEquals(0, count($digest->centroids()));
+        $this->assertEquals(INF, $digest->min());
+        $this->assertEquals(-INF, $digest->max());
     }
 
     /**
@@ -368,6 +401,20 @@ class TDigestTest extends TestCase
     }
 
     /**
+     * @group toJson
+     */
+    public function test_toJson_empty_digest_handles_empty_digests_properly(): void
+    {
+        $digest = new TDigest(100);
+        $serialized = json_decode($digest->toJson(), true);
+
+        $this->assertEquals(100, $serialized['size']);
+        $this->assertEquals(0, count($serialized['centroids']));
+        $this->assertNotContains('max', $serialized);
+        $this->assertNotContains('min', $serialized);
+    }
+
+    /**
      * @group createFromJson
      */
     public function test_createFromJson(): void
@@ -386,6 +433,23 @@ class TDigestTest extends TestCase
         $this->assertEquals(100, $digest->count());
         $this->assertEquals(5050, $digest->sum());
         $this->assertEquals(50.375, $digest->quantile(0.5));
+    }
+
+    /**
+     * @group createFromJson
+     */
+    public function test_createFromJson_handles_empty_digests_properly(): void
+    {
+        $digest = new TDigest(100);
+
+        $serialized = $digest->toJson();
+        $digest = TDigest::createFromJson($serialized);
+
+        $this->assertEquals(100, $digest->maxSize());
+        $this->assertEquals(0, $digest->count());
+        $this->assertEquals(0, count($digest->centroids()));
+        $this->assertEquals(INF, $digest->min());
+        $this->assertEquals(-INF, $digest->max());
     }
 
     /**
