@@ -40,6 +40,53 @@ class TDigest
         return $digest;
     }
 
+    /**
+     * @throws RuntimeException
+     */
+    public static function createFromArray(array $digest)
+    {
+        $fields = ['centroids', 'sum', 'count', 'max', 'min', 'size'];
+        foreach ($fields as &$field) {
+            if (!isset($digest[$field])) {
+                throw new \RuntimeException('TDigest array should contain a ' . $field . '  key.');
+            }
+        }
+
+        $centroids = [];
+        foreach ($digest['centroids'] as &$centroid) {
+            if (!isset($centroid['mean']) || !isset($centroid['weight'])) {
+                throw new \RuntimeException('TDigest Centroid array does not contain a mean or a weight.');
+            }
+
+            $centroids[] = new Centroid($centroid['mean'], $centroid['weight']);
+        }
+
+        return self::createFromCentroids($centroids, $digest['sum'], $digest['count'], $digest['max'], $digest['min'], $digest['size']);
+    }
+
+    public static function createFromJson(string $json)
+    {
+        $digest = json_decode($json, true);
+        return self::createFromArray($digest);
+    }
+
+    public function toArray(): array
+    {
+        return [
+            'centroids' => array_map(fn($c) => $c->toArray(), $this->centroids),
+            'sum' => $this->sum,
+            'count' => $this->count,
+            'max' => $this->max,
+            'min' => $this->min,
+            'size' => $this->maxSize,
+        ];
+    }
+
+    public function toJson(): string
+    {
+        return json_encode($this->toArray());
+    }
+
     public function addValues(array $values): void
     {
         sort($values);

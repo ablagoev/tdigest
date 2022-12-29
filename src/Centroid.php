@@ -13,6 +13,14 @@ class Centroid
         $this->weight = $weight;
     }
 
+    public function toArray()
+    {
+        return [
+            'mean' => $this->mean,
+            'weight' => $this->weight,
+        ];
+    }
+
     public function mean()
     {
         return $this->mean;

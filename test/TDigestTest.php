@@ -305,6 +305,90 @@ class TDigestTest extends TestCase
     }
 
     /**
+     * @group toArray
+     */
+    public function test_toArray(): void
+    {
+        $digest = new TDigest(100);
+        $values = range(1, 100);
+        $digest->addSortedValues($values);
+
+        $serialized = $digest->toArray();
+
+        $this->assertEquals(100, $serialized['size']);
+        $this->assertEquals(88, count($serialized['centroids']));
+        $this->assertEquals(1, $serialized['centroids'][0]['mean']);
+        $this->assertEquals(1, $serialized['centroids'][0]['weight']);
+        $this->assertEquals(100, $serialized['max']);
+        $this->assertEquals(1, $serialized['min']);
+        $this->assertEquals(100, $serialized['count']);
+        $this->assertEquals(5050, $serialized['sum']);
+    }
+
+    /**
+     * @group createFromArray
+     */
+    public function test_createFromArray(): void
+    {
+        $digest = new TDigest(100);
+        $values = range(1, 100);
+        $digest->addSortedValues($values);
+
+        $serialized = $digest->toArray();
+        $digest = TDigest::createFromArray($serialized);
+
+        $this->assertEquals(100, $digest->maxSize());
+        $this->assertEquals(88, count($digest->centroids()));
+        $this->assertEquals(100, $digest->max());
+        $this->assertEquals(1, $digest->min());
+        $this->assertEquals(100, $digest->count());
+        $this->assertEquals(5050, $digest->sum());
+        $this->assertEquals(50.375, $digest->quantile(0.5));
+    }
+
+    /**
+     * @group toJson
+     */
+    public function test_toJson(): void
+    {
+        $digest = new TDigest(100);
+        $values = range(1, 100);
+        $digest->addSortedValues($values);
+
+        $serialized = json_decode($digest->toJson(), true);
+
+        $this->assertEquals(100, $serialized['size']);
+        $this->assertEquals(88, count($serialized['centroids']));
+        $this->assertEquals(1, $serialized['centroids'][0]['mean']);
+        $this->assertEquals(1, $serialized['centroids'][0]['weight']);
+        $this->assertEquals(100, $serialized['max']);
+        $this->assertEquals(1, $serialized['min']);
+        $this->assertEquals(100, $serialized['count']);
+        $this->assertEquals(5050, $serialized['sum']);
+    }
+
+    /**
+     * @group createFromJson
+     */
+    public function test_createFromJson(): void
+    {
+        $digest = new TDigest(100);
+        $values = range(1, 100);
+        $digest->addSortedValues($values);
+
+        $serialized = $digest->toJson();
+        $digest = TDigest::createFromJson($serialized);
+
+        $this->assertEquals(100, $digest->maxSize());
+        $this->assertEquals(88, count($digest->centroids()));
+        $this->assertEquals(100, $digest->max());
+        $this->assertEquals(1, $digest->min());
+        $this->assertEquals(100, $digest->count());
+        $this->assertEquals(5050, $digest->sum());
+        $this->assertEquals(50.375, $digest->quantile(0.5));
+    }
+
+    /**
      * @dataProvider distributionProvider
      */
     public function test_distribution(array $underlyingDistribution, float $quantile, bool $digestMerge): void
