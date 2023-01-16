@@ -27,6 +27,8 @@ class TDigest
             $digest->count = $count;
             $digest->max = $max;
             $digest->min = $min;
+
+            Centroid::sort($centroids);
             $digest->centroids = $centroids;
         } else {
             // Number of centroids is greater than maxSize, we need to compress them
